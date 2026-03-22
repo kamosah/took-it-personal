@@ -1,36 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# kwame.dev — Personal Portfolio & Blog
 
-## Getting Started
+Personal portfolio and engineering blog for Kwame Amosah, Senior Software Engineer based in New York City.
 
-First, run the development server:
+**Live:** [kamosah.vercel.app](https://kamosah.vercel.app)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Stack
+
+- **Framework:** Next.js 16.2.1 (App Router, Turbopack)
+- **Styling:** Tailwind CSS v4 with `@theme` design tokens
+- **Blog:** Contentlayer2 + MDX with rehype-pretty-code syntax highlighting
+- **Animations:** Framer Motion with `prefers-reduced-motion` support
+- **Dark mode:** next-themes (system default, class strategy)
+- **UI:** Radix UI Dialog (mobile nav), react-intersection-observer
+- **Fonts:** Instrument Serif (display), DM Sans (body), JetBrains Mono
+
+## Project Structure
+
+```
+src/
+  app/              # Next.js App Router pages and layouts
+  components/
+    layout/         # Nav, Footer, PageTransition, ThemeProvider
+    mdx/            # MDX component overrides (Callout, PostContent)
+    sections/       # Page-level sections (Hero, FeaturedWork, BlogList)
+    ui/             # Primitives (Button, Badge, Card, AnimatedSection)
+  content/
+    posts/          # MDX blog posts
+  lib/              # Utilities and Contentlayer helpers
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Local Development
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm install
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Contentlayer2 runs automatically via the `predev` script before Next.js starts.
 
-## Learn More
+## Deployment
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Deployed on Vercel. The `prebuild` script handles Contentlayer2 type generation before the Next.js build — no additional configuration required.
