@@ -1,8 +1,12 @@
-# kwame.dev — Personal Portfolio & Blog
+# Personal Portfolio & Blog
 
-Personal portfolio and engineering blog for Kwame Amosah, Senior Software Engineer based in New York City.
+Personal portfolio and engineering blog | Senior Software Engineer based in New York City.
 
 **Live:** [kamosah.vercel.app](https://kamosah.vercel.app)
+
+| Light | Dark |
+|-------|------|
+| ![Light mode](public/screenshots/home-light.png) | ![Dark mode](public/screenshots/home-dark.png) |
 
 ## Stack
 
