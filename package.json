@@ -8,7 +8,8 @@
     "prebuild": "contentlayer2 build",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "clean": "rm -rf .next .contentlayer"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",

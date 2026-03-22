@@ -23,7 +23,7 @@ const projects = [
     description: 'Full-stack AI document intelligence platform built with Next.js 14 and FastAPI.',
     longDescription: 'Implemented hybrid chunking strategy combining semantic sentence grouping with fixed-size fallbacks to maximize retrieval coherence. Tuned similarity thresholds (0.72 cosine) to reduce hallucinations. Hybrid semantic + keyword search using pgvector with BM25 reranking.',
     tags: ['Next.js 14', 'FastAPI', 'LangGraph', 'pgvector', 'RAG', 'Python', 'TypeScript'],
-    status: 'In progress',
+    status: 'Beta',
     statusVariant: 'amber' as const,
   },
   {

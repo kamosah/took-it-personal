@@ -8,7 +8,7 @@ const projects = [
     url: 'https://github.com/kamosah/olympus',
     description: 'Full-stack AI document intelligence platform. RAG pipelines, LangGraph agents, pgvector semantic search, SSE streaming.',
     tags: ['Next.js 14', 'FastAPI', 'LangGraph', 'pgvector', 'RAG'],
-    status: 'In progress',
+    status: 'Beta',
     statusVariant: 'amber' as const,
   },
   {
