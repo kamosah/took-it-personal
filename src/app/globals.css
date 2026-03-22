@@ -20,6 +20,12 @@
 
 /* Light mode (default) */
 :root {
+  --badge-amber-bg: #FEF3C7;
+  --badge-amber-text: #92400E;
+  --badge-amber-border: #FCD34D;
+  --badge-green-bg: #D1FAE5;
+  --badge-green-text: #065F46;
+  --badge-green-border: #6EE7B7;
   --color-bg: #FAFAF8;
   --color-surface: #FFFFFF;
   --color-border: rgba(0, 0, 0, 0.08);
@@ -34,6 +40,12 @@
 
 /* Dark mode */
 .dark {
+  --badge-amber-bg: rgba(120, 53, 15, 0.3);
+  --badge-amber-text: #FCD34D;
+  --badge-amber-border: rgba(180, 83, 9, 0.5);
+  --badge-green-bg: rgba(6, 78, 59, 0.3);
+  --badge-green-text: #6EE7B7;
+  --badge-green-border: rgba(16, 185, 129, 0.4);
   --color-bg: #111111;
   --color-surface: #1A1A1A;
   --color-border: rgba(255, 255, 255, 0.08);
