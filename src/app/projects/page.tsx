@@ -26,24 +26,6 @@ const projects = [
     status: 'Beta',
     statusVariant: 'amber' as const,
   },
-  {
-    name: 'Komodo Management Console (KMC)',
-    url: null,
-    description: '0-to-1 multi-tenant admin console replacing Retool at Komodo Health.',
-    longDescription: "Solved N+1 API problem entirely on the frontend using React Query's useQueries for state synchronization and deferred hover-load for permissions data. Eliminated 80% of requests on typical page views.",
-    tags: ['React', 'TypeScript', 'GraphQL', 'React Query'],
-    status: 'Shipped',
-    statusVariant: 'green' as const,
-  },
-  {
-    name: 'Universal Cohort Creator',
-    url: null,
-    description: 'React/TypeScript search tool for 100K+ clinical codes, enabling healthcare analysts to build patient cohorts in seconds.',
-    longDescription: 'Built virtualized search interface handling 100,000+ ICD/CPT codes with sub-100ms filtering. Reduced cohort creation time by 40% compared to the previous workflow.',
-    tags: ['React', 'TypeScript', 'Healthcare', 'Performance'],
-    status: 'Shipped',
-    statusVariant: 'green' as const,
-  },
 ]
 
 export default function ProjectsPage() {

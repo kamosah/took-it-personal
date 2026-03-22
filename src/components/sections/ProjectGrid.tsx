@@ -4,20 +4,20 @@ import AnimatedSection from '@/components/ui/AnimatedSection'
 
 const projects = [
   {
+    name: 'CSS Design Patterns Lab',
+    url: 'https://github.com/kamosah/css-design-patterns',
+    description: 'Interactive browser-based learning platform for CSS design patterns, built with a Monaco Editor IDE, live sandboxed preview, and a structured challenge curriculum.',
+    tags: ['React', 'TypeScript', 'Vite', 'Monaco Editor', 'CSS'],
+    status: 'In progress',
+    statusVariant: 'amber' as const,
+  },
+  {
     name: 'Olympus',
     url: 'https://github.com/kamosah/olympus',
     description: 'Full-stack AI document intelligence platform. RAG pipelines, LangGraph agents, pgvector semantic search, SSE streaming.',
     tags: ['Next.js 14', 'FastAPI', 'LangGraph', 'pgvector', 'RAG'],
     status: 'Beta',
     statusVariant: 'amber' as const,
-  },
-  {
-    name: 'KMC',
-    url: null,
-    description: '0-to-1 multi-tenant admin console replacing Retool. Permission-based access control, N+1 optimization via React Query batching, hover-load patterns.',
-    tags: ['React', 'TypeScript', 'GraphQL', 'React Query'],
-    status: 'Shipped',
-    statusVariant: 'green' as const,
   },
 ]
 
