@@ -1,0 +1,148 @@
+---
+title: "Why I chose LangGraph over a simple LLM chain for Olympus"
+description: "How separating retrieval, generation, and citation extraction into explicit graph nodes made the Olympus RAG pipeline easier to reason about, test, and extend."
+date: 2025-06-01
+tags: ["AI", "LangGraph", "RAG", "Python"]
+published: true
+---
+
+When I started building Olympus — a document intelligence platform for multi-turn Q&A over uploaded files — the obvious first move was a simple chain: embed the query, retrieve chunks, stuff them into a prompt, call the LLM, return the result. That works. It's also a single blob of logic that's hard to test, hard to stream incrementally, and painful to extend.
+
+Here's why I moved to LangGraph, and what the graph model actually bought me.
+
+## The problem with one big function
+
+A naive RAG chain collapses three distinct concerns into one:
+
+1. **Retrieval** — finding the right chunks from pgvector
+2. **Generation** — constructing a prompt and calling the LLM
+3. **Citation extraction** — parsing which sources the model actually used
+
+When these live in one function, you can't test retrieval quality without invoking the LLM. You can't stream tokens before citations are ready without splitting the function anyway. You can't swap out the retrieval strategy without touching generation logic.
+
+LangGraph formalizes the split you'd eventually make anyway.
+
+## The Olympus agent graph
+
+The Olympus agent runs three nodes in a linear sequence:
+
+```python
+from langgraph.graph import StateGraph, END
+
+def create_thread_agent() -> CompiledStateGraph:
+    workflow = StateGraph(AgentState)
+
+    workflow.add_node("retrieve", retrieve_context)
+    workflow.add_node("generate", generate_response)
+    workflow.add_node("cite", add_citations)
+
+    workflow.set_entry_point("retrieve")
+    workflow.add_edge("retrieve", "generate")
+    workflow.add_edge("generate", "cite")
+    workflow.add_edge("cite", END)
+
+    return workflow.compile()
+```
+
+No conditional routing, no loops — just three functions connected by typed state. The deliberate simplicity is the point. The graph makes the data flow explicit rather than buried in function calls.
+
+## Typed state as the contract between nodes
+
+Every node reads from and writes to a shared `AgentState`. This is the part of LangGraph that pays off most in practice:
+
+```python
+class AgentState(TypedDict, total=False):
+    query: str
+    context: list[str]
+    response: str | None
+    citations: list[dict[str, Any]]
+    db: AsyncSession | None
+    space_id: UUID | None
+    mentioned_space_ids: list[UUID] | None
+    search_results: list[SearchResult] | None
+    conversation_history: list[dict[str, str]]
+```
+
+Each node declares its contract implicitly: `retrieve` reads `query` and `space_id`, writes `context` and `search_results`. `generate` reads `context` and `conversation_history`, writes `response`. `cite` reads `search_results` and `response`, writes `citations`.
+
+`total=False` makes every field optional, which matters for a streaming context where the state is partially populated at each step.
+
+<Callout type="info">
+  Treating `AgentState` like a schema — thinking carefully before adding fields — pays off fast. Every new capability touches the state definition first. If you can't describe what a new node reads and writes, you're not ready to build it.
+</Callout>
+
+## The citation node as a post-generation step
+
+The most non-obvious design decision was making citation extraction its own node rather than part of generation.
+
+The LLM is prompted to reference sources inline using numbered markers. After the response is generated, the `cite` node parses those markers and enriches them with document metadata, similarity scores, and confidence levels from the original search results:
+
+```python
+async def add_citations(state: AgentState) -> AgentState:
+    search_results = state.get("search_results") or []
+    response = state.get("response") or ""
+
+    citations = create_citations_from_search_results(
+        search_results=search_results,
+        response_text=response,
+    )
+
+    return {"citations": citations}
+```
+
+Separating this means the streaming layer can yield tokens from `generate` immediately, then yield the fully-enriched citation objects only after `cite` completes — matching the UX pattern of "see the answer, then see the sources."
+
+## Streaming without astream_events
+
+The streaming implementation doesn't use LangGraph's `astream_events`. Instead, the AI service wraps the graph nodes in a custom async generator that yields typed events at each stage:
+
+```python
+async def process_thread_stream(self, query: str, space_id: UUID, ...):
+    # Node 1: retrieve
+    context, search_results = await retrieve_context(query, space_id, db)
+    yield {"type": "status", "node": "retrieve"}
+
+    # Node 2: generate (streaming tokens)
+    response_text = ""
+    async for token in generate_response_streaming(query, context, history):
+        response_text += token
+        yield {"type": "token", "content": token}
+
+    # Node 3: cite
+    citations = await add_citations(search_results, response_text)
+    confidence = calculate_overall_confidence(citations)
+
+    yield {"type": "citations", "data": citations}
+    yield {"type": "done", "confidence": confidence, "thread_id": str(thread_id)}
+```
+
+The frontend receives a predictable event sequence: status updates first, then a stream of `token` events as the model generates, then a single `citations` event, then `done`. Each event type drives a different UI update.
+
+## Confidence scoring
+
+The `done` event includes a confidence score calculated from the citation quality — not from the LLM's own uncertainty. The formula combines three factors:
+
+- **Weighted average similarity** — exponential weights so the top retrieval result has the most influence
+- **Coverage bonus** — up to +0.1 for responses citing 3 or more sources
+- **Variance penalty** — -0.1 when citation scores are suspiciously uniform (low variance often signals ambiguous retrieval)
+
+```python
+def calculate_overall_confidence(citations: list[Citation]) -> float:
+    scores = [c.similarity_score for c in citations]
+    weights = [0.5 ** i for i in range(len(scores))]
+    weighted_avg = sum(s * w for s, w in zip(scores, weights)) / sum(weights)
+
+    coverage_bonus = min(len(citations) / 3, 1.0) * 0.1
+    variance = statistics.variance(scores) if len(scores) > 1 else 1.0
+    variance_penalty = 0.1 if variance < 0.05 else 0.0
+
+    return max(0.0, min(1.0, weighted_avg + coverage_bonus - variance_penalty))
+```
+
+The score surfaces in the UI as a quality indicator — high (≥ 0.7), medium (0.5–0.7), low (< 0.5) — so users can calibrate how much they trust a given response.
+
+## What the graph model actually gives you
+
+The LangGraph approach wasn't about adding complexity — the graph is three nodes with no branching. The payoff is clarity: when something breaks, you know which node to look at. When you want to add re-ranking before generation, you add a node between `retrieve` and `generate` and nothing else changes. When you want to test retrieval quality in isolation, you invoke just that node with a fixed state.
+
+The full source is on [GitHub](https://github.com/kamosah/olympus).

@@ -1,0 +1,89 @@
+---
+title: "Solving the N+1 Problem at Scale on the Frontend"
+description: "How I eliminated 80% of API requests on Komodo Health's admin console using React Query's useQueries and hover-load patterns."
+date: 2024-03-15
+tags: ["React", "React Query", "Performance", "TypeScript"]
+published: true
+---
+
+When we built the Komodo Management Console (KMC) — a multi-tenant admin tool replacing Retool — we hit a classic problem almost immediately: N+1 API requests.
+
+## The Problem
+
+Each row in our permissions table needed to fetch its own data. With 50+ rows, that meant 50+ simultaneous requests on every page load. The backend team wasn't thrilled.
+
+```typescript
+// The naive approach — don't do this
+function PermissionRow({ userId }: { userId: string }) {
+  const { data } = useQuery(['user', userId], () => fetchUser(userId))
+  return <Row data={data} />
+}
+```
+
+<Callout type="warning">
+  This pattern fires one request per row. With 50 rows, you're making 50 sequential or simultaneous requests. At scale, this kills both your backend and your perceived performance.
+</Callout>
+
+## Solution 1: useQueries for Batched State
+
+React Query's `useQueries` hook lets you fire multiple queries in parallel while sharing loading and error state:
+
+```typescript
+import { useQueries } from '@tanstack/react-query'
+
+function PermissionsTable({ userIds }: { userIds: string[] }) {
+  const results = useQueries({
+    queries: userIds.map((id) => ({
+      queryKey: ['user', id],
+      queryFn: () => fetchUser(id),
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    })),
+  })
+
+  const isLoading = results.some((r) => r.isLoading)
+  const users = results.map((r) => r.data).filter(Boolean)
+
+  return <Table users={users} isLoading={isLoading} />
+}
+```
+
+This alone cut our request waterfall significantly — but we still had an initial burst problem.
+
+## Solution 2: Hover-Load Patterns for Permissions Data
+
+The real win came from deferring non-critical data. Permission details don't need to load until a user hovers or interacts with a row.
+
+```typescript
+function PermissionRow({ userId }: { userId: string }) {
+  const [hovered, setHovered] = useState(false)
+
+  const { data: permissions } = useQuery(
+    ['permissions', userId],
+    () => fetchPermissions(userId),
+    {
+      enabled: hovered, // Only fetch when hovered
+      staleTime: 10 * 60 * 1000,
+    }
+  )
+
+  return (
+    <Row
+      onMouseEnter={() => setHovered(true)}
+      permissions={permissions}
+    />
+  )
+}
+```
+
+<Callout type="tip">
+  Combine this with `prefetchQuery` in `onMouseEnter` for an even smoother experience — the data is ready before the user clicks.
+</Callout>
+
+## Results
+
+- **80% reduction** in requests on typical page views
+- Initial page load time dropped from ~4s to under 1s
+- Backend API costs reduced significantly
+- Zero regressions in data freshness (staleTime tuned per data type)
+
+The key insight: not all data needs to load immediately. Categorize your data by urgency and load accordingly.

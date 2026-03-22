@@ -1,0 +1,173 @@
+---
+title: "Rendering 100K clinical codes without breaking the browser"
+description: "Debouncing, virtualization, and memoization: how I made Komodo Health's Codesets interface fast enough that clinical researchers stopped complaining."
+date: 2023-02-01
+tags: ["React", "Performance", "TypeScript", "Healthcare"]
+published: true
+---
+
+Clinical researchers at Komodo Health build patient cohorts — essentially defining a population of patients that share certain diagnoses, procedures, or prescriptions — for real-world evidence studies. The tool they use, the Universal Cohort Creator, sits on top of a dataset of over 100,000 clinical codes spanning ICD diagnoses, CPT procedures, and NDC drug codes.
+
+When I joined the Codesets feature team, the interface was slow enough that researchers were avoiding it. Searches would hang. Selecting codes in bulk caused the page to freeze. The irony was that Codesets existed specifically to *speed up* cohort creation — researchers shouldn't have to rebuild a cohort from scratch when they can reuse a pre-existing codeset with minor modifications. But nobody wants to use a tool that makes them feel like their laptop is dying.
+
+Here's what I did.
+
+## Diagnosing the problem
+
+The interface had a few compounding issues:
+
+1. Every keystroke fired a network request to filter codes
+2. The code table was rendering all visible *and* non-visible rows in the DOM
+3. State updates during search, filtering, and multi-code selection were triggering full component re-renders across the tree
+4. Expensive calculations — filtering 100K entries, computing selection state — were running on every render
+
+None of these are unusual bugs. They're the predictable result of building a feature-complete UI before tuning it for the specific data scale. The fix was layered.
+
+## Layer 1: Debouncing search input
+
+The first and cheapest win. Every character the researcher typed was firing a request:
+
+```typescript
+// Before: fires on every keystroke
+function CodeSearch({ onSearch }: { onSearch: (q: string) => void }) {
+  return (
+    <input onChange={(e) => onSearch(e.target.value)} placeholder="Search codes..." />
+  )
+}
+```
+
+A 300ms debounce cut the request volume dramatically during active typing:
+
+```typescript
+import { useDebouncedCallback } from 'use-debounce'
+
+function CodeSearch({ onSearch }: { onSearch: (q: string) => void }) {
+  const handleSearch = useDebouncedCallback((value: string) => {
+    onSearch(value)
+  }, 300)
+
+  return (
+    <input onChange={(e) => handleSearch(e.target.value)} placeholder="Search codes..." />
+  )
+}
+```
+
+300ms is the sweet spot — imperceptibly slow for the user, but enough to collapse a five-character search from five requests to one.
+
+## Layer 2: Virtualization with react-window
+
+Rendering 100K rows in the DOM — even hidden rows — is a memory and layout problem. The browser builds a DOM node for every row regardless of visibility. At 100K rows, that's catastrophic.
+
+`react-window` solves this by only mounting rows currently in the viewport, plus a small overscan buffer above and below. The DOM stays small regardless of dataset size:
+
+```typescript
+import { FixedSizeList, ListChildComponentProps } from 'react-window'
+
+const ROW_HEIGHT = 40
+
+function CodeRow({ index, style, data }: ListChildComponentProps<ClinicalCode[]>) {
+  const code = data[index]
+  return (
+    <div style={style} className="flex items-center gap-4 px-4 border-b">
+      <span className="font-mono text-sm w-28 shrink-0">{code.code}</span>
+      <span className="text-sm text-gray-700 truncate">{code.description}</span>
+      <span className="text-xs text-gray-400 w-16 shrink-0">{code.system}</span>
+    </div>
+  )
+}
+
+function CodeTable({ codes }: { codes: ClinicalCode[] }) {
+  return (
+    <FixedSizeList
+      height={500}
+      itemCount={codes.length}
+      itemSize={ROW_HEIGHT}
+      itemData={codes}
+      width="100%"
+    >
+      {CodeRow}
+    </FixedSizeList>
+  )
+}
+```
+
+<Callout type="warning">
+  `react-window` requires a fixed, known item height via `itemSize`. If your rows have variable heights, use `VariableSizeList` instead — but measure carefully, because incorrect height estimates cause scroll position drift.
+</Callout>
+
+This was the biggest single performance win. Page freezes during scroll disappeared immediately.
+
+## Layer 3: React Context to isolate re-renders
+
+The selection state — which codes are checked — was living in a top-level component and being passed down as props. Every time a researcher checked a code, the entire tree re-rendered: the search input, the filter panel, the selected codes summary, all of it.
+
+The fix was moving selection state into its own Context so only components that actually care about selection re-render when it changes:
+
+```typescript
+interface CodesetSelectionContext {
+  selectedCodes: Set<string>
+  toggleCode: (code: string) => void
+  clearSelection: () => void
+}
+
+const SelectionContext = createContext<CodesetSelectionContext | null>(null)
+
+function CodesetProvider({ children }: { children: React.ReactNode }) {
+  const [selectedCodes, setSelectedCodes] = useState<Set<string>>(new Set())
+
+  const toggleCode = useCallback((code: string) => {
+    setSelectedCodes((prev) => {
+      const next = new Set(prev)
+      next.has(code) ? next.delete(code) : next.add(code)
+      return next
+    })
+  }, [])
+
+  const clearSelection = useCallback(() => {
+    setSelectedCodes(new Set())
+  }, [])
+
+  return (
+    <SelectionContext.Provider value={{ selectedCodes, toggleCode, clearSelection }}>
+      {children}
+    </SelectionContext.Provider>
+  )
+}
+```
+
+The search input and filter panel no longer re-render when a code is selected. They only re-render when their own state changes.
+
+## Layer 4: Memoizing expensive calculations
+
+Filtering 100K codes on every render is expensive. The filtered result only needs to recompute when the raw codes list or the search query actually changes:
+
+```typescript
+function useFilteredCodes(codes: ClinicalCode[], query: string, filters: CodeFilters) {
+  return useMemo(() => {
+    let result = codes
+
+    if (query) {
+      const lower = query.toLowerCase()
+      result = result.filter(
+        (c) =>
+          c.code.toLowerCase().includes(lower) ||
+          c.description.toLowerCase().includes(lower)
+      )
+    }
+
+    if (filters.system) {
+      result = result.filter((c) => c.system === filters.system)
+    }
+
+    return result
+  }, [codes, query, filters.system])
+}
+```
+
+Same for the selected codes summary — computing display metadata from a `Set` of 500 selected codes doesn't need to run every time the search query changes.
+
+## The outcome
+
+Cohort creation time dropped by 40%. Researchers who had been manually recreating similar cohorts from scratch started using Codesets to find existing definitions and extend them — which is exactly what the feature was designed to enable.
+
+The broader lesson: performance issues at this scale are almost never one thing. They're layered — network, DOM, render, compute — and the fix needs to be layered too. Debouncing buys you nothing if the table is still freezing on scroll. Virtualization helps scroll, but re-renders will still kill you during selection. You have to address all four layers to get to a result that actually feels fast.

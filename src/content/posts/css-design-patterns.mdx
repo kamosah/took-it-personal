@@ -1,0 +1,139 @@
+---
+title: "Relearning CSS by building a tool to teach it"
+description: "Why I built a Monaco Editor-based CSS challenge platform to systematically revisit layout patterns, custom form controls, and design tokens."
+date: 2026-03-15
+tags: ["CSS", "Design Systems", "React", "TypeScript"]
+published: true
+---
+
+Six years into a career writing React and TypeScript, I realized I'd been treating CSS as something you wing rather than something you know. I could ship a feature, but I couldn't always explain *why* a flexbox trick worked, or recall the exact selector pattern for a custom form control without reaching for Stack Overflow.
+
+So I built [CSS Design Patterns Lab](https://github.com/kamosah/css-design-patterns), a browser-based learning platform where I'm working through CSS patterns as structured challenges. The constraint I put on myself: write the solution, then write the explanation for *why* it works. If I can't explain it, I don't actually know it.
+
+## Why build the tool instead of just practicing
+
+The act of structuring a challenge forces a level of precision that passive reading doesn't. To author a challenge, you have to decide:
+
+- What is the minimum HTML structure that isolates this pattern?
+- What does the starter CSS give the learner, and what do they fill in?
+- What's the *concept* the pattern teaches, not just the code?
+
+Writing the `instructions.md` and `solution.md` for each challenge meant I had to articulate the mental model, not just reproduce the snippet. That gap, between being able to copy a solution and being able to explain it, is where the real learning is.
+
+## The platform architecture
+
+The app is structured as a VS Code-like IDE: Monaco Editor on the left, live sandboxed preview on the right via a resizable split panel. Each challenge lives in its own directory:
+
+```text
+challenges/
+  custom-form-controls/
+    custom-toggle-switch/
+      meta.ts          # title, difficulty, time estimate
+      instructions.md  # what the learner needs to know
+      starter.html     # HTML template
+      starter.css      # incomplete CSS to fill in
+      solution.html
+      solution.css
+```
+
+The curriculum is a registry that maps challenge IDs to their content. Zustand tracks completion state in localStorage so progress persists between sessions.
+
+## What I've learned revisiting these patterns
+
+### The adjacent sibling selector is more powerful than I remembered
+
+Custom form controls (toggles, radio buttons, file inputs) all rely on the same underlying pattern: hide the native element, style a sibling based on its state.
+
+```css
+/* Hide the native checkbox */
+.switch input {
+  display: none;
+}
+
+/* Style the visual track */
+.switch .slider {
+  background-color: #ccc;
+  border-radius: 24px;
+  transition: background-color 0.2s ease-in-out;
+}
+
+/* React to input state via adjacent sibling selector */
+.switch input:checked + .slider {
+  background-color: #2196F3;
+}
+
+/* Animate the knob with a pseudo-element */
+.switch .slider::before {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  transition: transform 0.2s ease-in-out;
+}
+
+.switch input:checked + .slider::before {
+  transform: translateX(26px);
+}
+```
+
+The `input:checked + .slider` selector is doing the heavy lifting. The native input is invisible but still functional. It receives clicks through the label, changes state, and the `+` selector propagates that state to the visible sibling. No JavaScript.
+
+What I'd glossed over before: this only works because the label *wraps* the input, and the visual element is a *sibling* of the input, not a descendant. The DOM order matters.
+
+### Centering is a decision about which axis owns what
+
+The classic "center a div" problem is worth slowing down on because there are genuinely different answers depending on context:
+
+```css
+/* Horizontal centering for block elements with known width */
+.box {
+  width: 200px;
+  margin: 0 auto;
+}
+
+/* Vertical centering: flexbox takes over */
+.container {
+  display: flex;
+  align-items: center;     /* vertical */
+  justify-content: center; /* horizontal */
+}
+```
+
+`margin: auto` only distributes *available* space, and block elements only have available space horizontally. That's why it centers horizontally but does nothing vertically, and why flexbox or grid is the right tool the moment you need both axes.
+
+I'd been using these patterns for years. Writing the challenge made me state *why* they work, which surfaced the mental model I'd been operating on implicitly.
+
+### Design tokens as the foundation
+
+The app itself uses CSS custom properties for its own design system (colors, transitions, spacing) defined in `tokens.css` and consumed throughout. Working inside that constraint while building the tool reinforced the value of the pattern:
+
+```css
+:root {
+  --color-primary: #007BFF;
+  --color-primary-hover: #0056B3;
+  --transition-base: 0.2s ease-in-out;
+}
+
+.button {
+  background-color: var(--color-primary);
+  transition: background-color var(--transition-base);
+}
+
+.button:hover {
+  background-color: var(--color-primary-hover);
+}
+```
+
+When you're maintaining a system rather than a one-off component, the discipline of reaching for a token instead of a hardcoded value compounds. Theming, dark mode, and design hand-offs all become significantly easier when the values are centralized.
+
+## What's next
+
+The current curriculum covers centering/alignment and custom form controls. I'm planning to add:
+
+- **Grid layout patterns**: named template areas, auto-fill vs auto-fit, subgrid
+- **Responsive typography**: fluid type scaling with `clamp()`
+- **Component-level design tokens**: scoped custom properties for component variants
+- **Stacking contexts**: the z-index rabbit hole, explained clearly
+
+The goal isn't to cover everything — it's to cover the patterns that show up repeatedly in real codebases and are worth having an explicit mental model for rather than re-Googling every time.
+
+The full project is on [GitHub](https://github.com/kamosah/css-design-patterns).
