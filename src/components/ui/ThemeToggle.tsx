@@ -1,15 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useSyncExternalStore } from 'react'
 import { useTheme } from 'next-themes'
 
 export default function ThemeToggle() {
-  const [mounted, setMounted] = useState(false)
+  const mounted = useSyncExternalStore(() => () => {}, () => true, () => false)
   const { resolvedTheme, setTheme } = useTheme()
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   // Render placeholder on server and first client render to avoid hydration mismatch
   if (!mounted) return <div className="w-8 h-8" />
