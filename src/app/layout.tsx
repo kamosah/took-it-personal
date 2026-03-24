@@ -3,7 +3,6 @@ import { Instrument_Serif, DM_Sans, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import Nav from '@/components/layout/Nav'
 import Footer from '@/components/layout/Footer'
-import PageTransition from '@/components/layout/PageTransition'
 import ThemeProvider from '@/components/layout/ThemeProvider'
 
 const instrumentSerif = Instrument_Serif({
@@ -40,9 +39,7 @@ export default function RootLayout({
       <body className="bg-bg font-body antialiased" suppressHydrationWarning>
         <ThemeProvider>
           <Nav />
-          <PageTransition>
-            {children}
-          </PageTransition>
+          {children}
           <Footer />
         </ThemeProvider>
       </body>

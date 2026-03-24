@@ -1,6 +1,5 @@
 'use client'
 
-import { useInView } from 'react-intersection-observer'
 import { motion, useReducedMotion } from 'framer-motion'
 
 interface AnimatedSectionProps {
@@ -11,7 +10,6 @@ interface AnimatedSectionProps {
 
 export default function AnimatedSection({ children, className, delay = 0 }: AnimatedSectionProps) {
   const prefersReduced = useReducedMotion()
-  const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.1 })
 
   if (prefersReduced) {
     return <div className={className}>{children}</div>
@@ -19,10 +17,10 @@ export default function AnimatedSection({ children, className, delay = 0 }: Anim
 
   return (
     <motion.div
-      ref={ref}
       className={className}
       initial={{ opacity: 0, y: 24 }}
-      animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.1 }}
       transition={{
         duration: 0.5,
         delay,
