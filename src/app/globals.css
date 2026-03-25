@@ -91,6 +91,27 @@ body {
   color: inherit;
 }
 
+/* Inline code — suppress typography plugin's backtick pseudo-elements and style as a chip */
+.prose :where(code):not(:where(pre *))::before,
+.prose :where(code):not(:where(pre *))::after {
+  content: none;
+}
+
+.prose :where(code):not(:where(pre *)) {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  font-weight: 500;
+  background-color: var(--color-accent-light);
+  color: var(--color-accent);
+  padding: 0.15em 0.4em;
+  border-radius: 0.3em;
+}
+
+.dark .prose :where(code):not(:where(pre *)) {
+  background-color: var(--color-accent-light);
+  color: var(--color-accent-hover);
+}
+
 /* Let rehype-pretty-code control code block backgrounds */
 .prose pre {
   background-color: transparent;
