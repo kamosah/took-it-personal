@@ -2,21 +2,32 @@
 
 import { motion, useReducedMotion } from 'framer-motion'
 
+const motionElements = {
+  div: motion.div,
+  li: motion.li,
+  section: motion.section,
+} as const
+
+type SupportedTag = keyof typeof motionElements
+
 interface AnimatedSectionProps {
   children: React.ReactNode
   className?: string
   delay?: number
+  as?: SupportedTag
 }
 
-export default function AnimatedSection({ children, className, delay = 0 }: AnimatedSectionProps) {
+export default function AnimatedSection({ children, className, delay = 0, as: Tag = 'div' }: AnimatedSectionProps) {
   const prefersReduced = useReducedMotion()
 
   if (prefersReduced) {
-    return <div className={className}>{children}</div>
+    return <Tag className={className}>{children}</Tag>
   }
 
+  const MotionTag = motionElements[Tag] as typeof motion.div
+
   return (
-    <motion.div
+    <MotionTag
       className={className}
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -28,6 +39,6 @@ export default function AnimatedSection({ children, className, delay = 0 }: Anim
       }}
     >
       {children}
-    </motion.div>
+    </MotionTag>
   )
 }

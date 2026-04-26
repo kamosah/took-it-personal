@@ -27,9 +27,9 @@ export default function ProjectGrid() {
       <p className="font-mono text-xs tracking-widest uppercase text-text-tertiary mb-12">
         Projects
       </p>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <ul className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {projects.map((project, i) => (
-          <AnimatedSection key={project.name} delay={i * 0.1}>
+          <AnimatedSection key={project.name} as="li" delay={i * 0.1}>
             <div className="bg-surface border border-[rgba(0,0,0,0.08)] rounded-xl p-6 hover:border-[rgba(0,0,0,0.15)] hover:-translate-y-0.5 transition-all duration-200 h-full flex flex-col">
               <div className="flex items-start justify-between mb-2">
                 <h3 className="font-body font-medium text-base text-text-primary">{project.name}</h3>
@@ -37,11 +37,11 @@ export default function ProjectGrid() {
               </div>
               <p className="text-sm text-text-secondary leading-relaxed mt-2 flex-1">{project.description}</p>
               <div className="flex items-center justify-between mt-6">
-                <div className="flex flex-wrap gap-2">
+                <ul className="flex flex-wrap gap-2">
                   {project.tags.map((tag) => (
-                    <Badge key={tag}>{tag}</Badge>
+                    <li key={tag}><Badge>{tag}</Badge></li>
                   ))}
-                </div>
+                </ul>
                 {project.url && (
                   <Link
                     href={project.url}
@@ -57,7 +57,7 @@ export default function ProjectGrid() {
             </div>
           </AnimatedSection>
         ))}
-      </div>
+      </ul>
     </section>
   )
 }

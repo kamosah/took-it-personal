@@ -7,7 +7,7 @@ interface CalloutProps {
 
 export default function Callout({ type = 'info', children }: CalloutProps) {
   return (
-    <div
+    <aside
       className={cn(
         'border-l-2 pl-4 py-3 my-6 rounded-r-md',
         type === 'info' && 'border-accent bg-accent-light text-text-secondary',
@@ -16,6 +16,6 @@ export default function Callout({ type = 'info', children }: CalloutProps) {
       )}
     >
       <div className="text-sm leading-relaxed">{children}</div>
-    </div>
+    </aside>
   )
 }

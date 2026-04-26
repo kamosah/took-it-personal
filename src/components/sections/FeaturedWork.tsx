@@ -46,9 +46,9 @@ export default function FeaturedWork() {
       <p className="font-mono text-xs tracking-widest uppercase text-text-tertiary mb-12">
         Selected work
       </p>
-      <div className="flex flex-col divide-y divide-[rgba(0,0,0,0.06)]">
+      <ul className="flex flex-col divide-y divide-[rgba(0,0,0,0.06)]">
         {experience.map((job, i) => (
-          <AnimatedSection key={job.company} delay={i * 0.08} className="py-8">
+          <AnimatedSection key={job.company} as="li" delay={i * 0.08} className="py-8">
             <div className="flex gap-8">
               <div className="w-[120px] shrink-0">
                 <span className="font-mono text-xs text-text-tertiary">
@@ -67,16 +67,16 @@ export default function FeaturedWork() {
                 <p className="text-sm text-text-secondary leading-relaxed mb-3">
                   {job.impact}
                 </p>
-                <div className="flex flex-wrap gap-2">
+                <ul className="flex flex-wrap gap-2">
                   {job.tags.map((tag) => (
-                    <Badge key={tag}>{tag}</Badge>
+                    <li key={tag}><Badge>{tag}</Badge></li>
                   ))}
-                </div>
+                </ul>
               </div>
             </div>
           </AnimatedSection>
         ))}
-      </div>
+      </ul>
     </section>
   );
 }

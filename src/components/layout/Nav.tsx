@@ -94,19 +94,22 @@ export default function Nav() {
                   ✕
                 </button>
               </Dialog.Close>
-              <nav className="mt-8 flex flex-col gap-6">
-                {navLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={cn(
-                      'text-lg transition-colors',
-                      pathname === link.href ? 'text-text-primary font-medium' : 'text-text-secondary'
-                    )}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
+              <nav className="mt-8">
+                <ul className="flex flex-col gap-6">
+                  {navLinks.map((link) => (
+                    <li key={link.href}>
+                      <Link
+                        href={link.href}
+                        className={cn(
+                          'text-lg transition-colors',
+                          pathname === link.href ? 'text-text-primary font-medium' : 'text-text-secondary'
+                        )}
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
               </nav>
             </Dialog.Content>
           </Dialog.Portal>

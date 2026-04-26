@@ -11,9 +11,9 @@ export default function BlogList() {
       <p className="font-mono text-xs tracking-widest uppercase text-text-tertiary mb-12">
         Writing
       </p>
-      <div className="flex flex-col divide-y divide-[rgba(0,0,0,0.06)]">
+      <ul className="flex flex-col divide-y divide-[rgba(0,0,0,0.06)]">
         {posts.map((post, i) => (
-          <AnimatedSection key={post.slug} delay={i * 0.08} className="py-5">
+          <AnimatedSection key={post.slug} as="li" delay={i * 0.08} className="py-5">
             <div className="flex gap-8 items-start">
               <div className="w-[120px] shrink-0">
                 <span className="font-mono text-xs text-text-tertiary">{formatDate(post.date)}</span>
@@ -30,7 +30,7 @@ export default function BlogList() {
             </div>
           </AnimatedSection>
         ))}
-      </div>
+      </ul>
       <div className="mt-8">
         <Link
           href="/blog"
