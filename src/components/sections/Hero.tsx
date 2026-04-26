@@ -3,7 +3,8 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import Button from '@/components/ui/Button'
 
-const headlineWords = ['Built', 'with', 'craft.', 'Accessible', 'by', 'design.']
+const line1 = ['Built', 'with', 'Craft.']
+const line2 = ['Intuitive', 'by', 'Design.']
 
 export default function Hero() {
   const prefersReduced = useReducedMotion()
@@ -17,23 +18,45 @@ export default function Hero() {
         <div className="w-8 h-0.5 bg-accent mb-6" />
         <h1 className="font-display text-5xl md:text-7xl leading-tight mb-6 text-text-primary">
           {prefersReduced ? (
-            <>Built with craft. <em>Accessible by design.</em></>
+            <>
+              Built with Craft.
+              <em className="block">Intuitive by Design.</em>
+            </>
           ) : (
-            headlineWords.map((word, i) => (
-              <motion.span
-                key={i}
-                className="inline-block mr-[0.25em]"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  duration: 0.6,
-                  delay: i * 0.04,
-                  ease: [0.22, 1, 0.36, 1],
-                }}
-              >
-                {i >= 3 ? <em>{word}</em> : word}
-              </motion.span>
-            ))
+            <>
+              {line1.map((word, i) => (
+                <motion.span
+                  key={i}
+                  className="inline-block mr-[0.25em]"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: 0.6,
+                    delay: i * 0.04,
+                    ease: [0.22, 1, 0.36, 1],
+                  }}
+                >
+                  {word}
+                </motion.span>
+              ))}
+              <em className="block">
+                {line2.map((word, i) => (
+                  <motion.span
+                    key={i}
+                    className="inline-block mr-[0.25em]"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      duration: 0.6,
+                      delay: (line1.length + i) * 0.04,
+                      ease: [0.22, 1, 0.36, 1],
+                    }}
+                  >
+                    {word}
+                  </motion.span>
+                ))}
+              </em>
+            </>
           )}
         </h1>
         <p className="font-body text-lg text-text-secondary leading-relaxed max-w-xl mb-8">
