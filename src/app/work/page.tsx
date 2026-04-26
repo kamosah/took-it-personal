@@ -102,9 +102,9 @@ export default function WorkPage() {
           <p className="font-mono text-xs tracking-widest uppercase text-text-tertiary mb-2">Experience</p>
           <h1 className="font-display text-4xl md:text-5xl text-text-primary mb-16">Work history</h1>
         </AnimatedSection>
-        <div className="flex flex-col divide-y divide-[rgba(0,0,0,0.06)]">
+        <ul className="flex flex-col divide-y divide-[rgba(0,0,0,0.06)]">
           {experience.map((job, i) => (
-            <AnimatedSection key={`${job.company}-${job.role}`} delay={i * 0.08} className="py-12">
+            <AnimatedSection key={`${job.company}-${job.role}`} as="li" delay={i * 0.08} className="py-12">
               <div className="flex gap-8">
                 <div className="w-[120px] shrink-0">
                   <span className="font-mono text-xs text-text-tertiary">{job.period}</span>
@@ -122,30 +122,30 @@ export default function WorkPage() {
                       </li>
                     ))}
                   </ul>
-                  <div className="flex flex-wrap gap-2">
+                  <ul className="flex flex-wrap gap-2">
                     {job.tags.map((tag) => (
-                      <Badge key={tag}>{tag}</Badge>
+                      <li key={tag}><Badge>{tag}</Badge></li>
                     ))}
-                  </div>
+                  </ul>
                 </div>
               </div>
             </AnimatedSection>
           ))}
-        </div>
+        </ul>
         <AnimatedSection className="mt-24 pt-16 border-t border-[rgba(0,0,0,0.06)]">
           <p className="font-mono text-xs tracking-widest uppercase text-text-tertiary mb-12">Skills</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-10">
+          <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-10">
             {Object.entries(skills).map(([category, items]) => (
               <div key={category}>
-                <p className="font-mono text-xs tracking-widest uppercase text-text-tertiary mb-4">{category}</p>
-                <div className="flex flex-wrap gap-2">
+                <dt className="font-mono text-xs tracking-widest uppercase text-text-tertiary mb-4">{category}</dt>
+                <dd className="flex flex-wrap gap-2">
                   {items.map((skill) => (
                     <Badge key={skill}>{skill}</Badge>
                   ))}
-                </div>
+                </dd>
               </div>
             ))}
-          </div>
+          </dl>
         </AnimatedSection>
       </div>
     </main>

@@ -9,17 +9,23 @@ export default function ContactSection() {
       <p className="font-body text-lg text-text-secondary leading-relaxed mb-12">
         I&apos;m currently open to senior frontend-leaning fullstack roles at mission-driven Series A–C companies in NYC.
       </p>
-      <div className="flex flex-col items-center gap-4">
-        <Link href="mailto:kamosah1@gmail.com" className="font-mono text-sm text-text-secondary hover:text-accent transition-colors">
-          kamosah1@gmail.com
-        </Link>
-        <Link href="https://www.linkedin.com/in/kamosah/" target="_blank" rel="noopener noreferrer" className="font-mono text-sm text-text-secondary hover:text-accent transition-colors">
-          linkedin.com/in/kamosah
-        </Link>
-        <Link href="https://github.com/kamosah" target="_blank" rel="noopener noreferrer" className="font-mono text-sm text-text-secondary hover:text-accent transition-colors">
-          github.com/kamosah
-        </Link>
-      </div>
+      <ul className="flex flex-col items-center gap-4">
+        <li>
+          <Link href="mailto:kamosah1@gmail.com" className="font-mono text-sm text-text-secondary hover:text-accent transition-colors">
+            kamosah1@gmail.com
+          </Link>
+        </li>
+        <li>
+          <Link href="https://www.linkedin.com/in/kamosah/" target="_blank" rel="noopener noreferrer" className="font-mono text-sm text-text-secondary hover:text-accent transition-colors">
+            linkedin.com/in/kamosah
+          </Link>
+        </li>
+        <li>
+          <Link href="https://github.com/kamosah" target="_blank" rel="noopener noreferrer" className="font-mono text-sm text-text-secondary hover:text-accent transition-colors">
+            github.com/kamosah
+          </Link>
+        </li>
+      </ul>
     </section>
   )
 }

@@ -7,30 +7,36 @@ export default function Footer() {
         <p className="font-mono text-xs text-text-tertiary">
           © {new Date().getFullYear()} Kwame Amosah
         </p>
-        <div className="flex items-center gap-6">
-          <Link
-            href="https://github.com/kamosah"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-mono text-xs text-text-tertiary hover:text-accent transition-colors"
-          >
-            GitHub
-          </Link>
-          <Link
-            href="https://www.linkedin.com/in/kamosah/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-mono text-xs text-text-tertiary hover:text-accent transition-colors"
-          >
-            LinkedIn
-          </Link>
-          <Link
-            href="mailto:kamosah1@gmail.com"
-            className="font-mono text-xs text-text-tertiary hover:text-accent transition-colors"
-          >
-            Email
-          </Link>
-        </div>
+        <ul className="flex items-center gap-6">
+          <li>
+            <Link
+              href="https://github.com/kamosah"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-mono text-xs text-text-tertiary hover:text-accent transition-colors"
+            >
+              GitHub
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="https://www.linkedin.com/in/kamosah/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-mono text-xs text-text-tertiary hover:text-accent transition-colors"
+            >
+              LinkedIn
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="mailto:kamosah1@gmail.com"
+              className="font-mono text-xs text-text-tertiary hover:text-accent transition-colors"
+            >
+              Email
+            </Link>
+          </li>
+        </ul>
       </div>
     </footer>
   )
